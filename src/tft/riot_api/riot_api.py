@@ -102,7 +102,7 @@ def get_match_list_between_timestamp(
     return results
 
 
-def get_match_by_match_id(match_id: str, **kwargs):
+def get_match_by_match_id(match_id: str, **kwargs) -> dict:
     requests_host = f'{TFT_ASIA_BASE_HOST}/match/v1/matches/{match_id}'
     response = get_response(host=requests_host, **kwargs)
     response.raise_for_status()
@@ -111,22 +111,10 @@ def get_match_by_match_id(match_id: str, **kwargs):
 
 def get_match_by_match_ids(match_ids: list[str],
                            time_sleep_second: int | float = 1,
-                           **kwargs):
+                           **kwargs) -> list[dict]:
     results = []
     for match_id in match_ids:
         results.append((get_match_by_match_id(match_id, **kwargs)))
         time.sleep(time_sleep_second)
     return results
-
-
-
-# metadata
-metadata = requests.get()
-metadata_json = metadata.json()
-metadata_items= metadata_json.get('items')
-metadata_set_data= metadata_json.get('setData')
-metadata_sets= metadata_json.get('sets')
-
-
-
 
