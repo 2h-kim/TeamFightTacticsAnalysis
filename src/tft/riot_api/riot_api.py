@@ -185,5 +185,3 @@ def get_tft_metadata(
     metadata = get_response(host=metadata_host, **kwargs)
     metadata.raise_for_status()
     return metadata.json()
-
-

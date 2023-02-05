@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import logging
 import re
-from tft.riot_api.constant import DEFAULT_HASH
+
 from tft.common import CaseBlankInsentiveDict
+from tft.riot_api.constant import DEFAULT_HASH
 
 
 def refine_string_to_hash(
-    string_need_to_hash: str
+        string_need_to_hash: str
 ) -> int | str:
     """
     string to hash value
@@ -131,7 +132,6 @@ def refine_metadata_set_data(
 def refine_metadata_sets(
         sets: dict
 ):
-
     champions = sets.get('champions')
     sets_name = sets.get('name')
     sets_traits = sets.get('traits')
