@@ -124,7 +124,7 @@ def get_match_list_between_timestamp(
     """
     # daily maximum will be less then 200 so, i tried like that.
     if start_date.tzinfo is None:
-        start_date = start_date.replace(tzinfo=pytz.timezone('Asia/Seoul'))
+        start_date = start_date.replace(tzinfo=pytz.timezone(TIMEZONE))
     timedelta_days = (end_date - start_date).days
 
     results = []
