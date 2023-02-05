@@ -8,7 +8,7 @@ import pytz
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
-from tft.riot_api.constant import TFT_KR_BASE_HOST, TFT_ASIA_BASE_HOST, TIMEZONE
+from tft.riot_api.constant import TFT_KR_BASE_HOST, TFT_ASIA_BASE_HOST, TIMEZONE, TFT_CDRAGON_LATEST_URL
 
 API_KEY = os.environ.get('RIOT_API_TOKEN', None)
 if API_KEY is None:
@@ -171,3 +171,19 @@ def get_match_by_match_ids(
         results.append((get_match_by_match_id(match_id, **kwargs)))
         time.sleep(time_sleep_second)
     return results
+
+
+def get_tft_metadata(
+        metadata_host: str = TFT_CDRAGON_LATEST_URL,
+        **kwargs
+) -> dict:
+    """
+    get metadata for tft items, units etc.
+    :param metadata_host: metadata of host, default is constant TFT_CDRAGON_LATEST_URL
+    :return: json for metadata
+    """
+    metadata = get_response(host=metadata_host, **kwargs)
+    metadata.raise_for_status()
+    return metadata.json()
+
+
