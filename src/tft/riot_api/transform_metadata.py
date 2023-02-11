@@ -22,10 +22,10 @@ def refine_string_to_hash(
     return h
 
 
-def item_effects_hash_to_name(
+def effects_hash_to_name(
         description: str,
         effects: dict[str],
-        api_name: str | None
+        api_name: str | None = None
 ):
     """
     effects hash mapping to name mapping
@@ -50,13 +50,14 @@ def item_effects_hash_to_name(
             effect_value = effects_refined.get(effect_hash_str, None)
             if effect_value is not None:
                 del effects_refined[effect_hash_str]
-                if scale is not None:
+                if scale is not None and not isinstance(effect_value, str):
                     effects_refined[effect_name] = effect_value * float(scale)
+
                 else:
                     effects_refined[effect_name] = effect_value
-            else:
-                logging.warning(f"Cannot mapping Value in effects_hash_to_name : '{api_name}',  '{effect_name}' ,"
-                                f"'{effect_hash_str}'")
+            # else:
+                # logging.warning(f"Cannot mapping Value in effects_hash_to_name : '{api_name}',  '{effect_name}' ,"
+                #                 f"'{effect_hash_str}'")
     return effects_refined
 
 
@@ -90,7 +91,7 @@ def refine_metadata_item(
     id_ = metadata_item.get('id')
     name_ = metadata_item.get('name')
     is_unique = metadata_item.get('unique')
-    effects_mapping_refined = item_effects_hash_to_name(description, effects_mapping, api_name)
+    effects_mapping_refined = effects_hash_to_name(description, effects_mapping, api_name)
     metadata_item_refined = {
         'id': id_,
         'name': name_,
@@ -104,36 +105,115 @@ def refine_metadata_item(
     return metadata_item_refined
 
 
-def refine_metadata_set_data_champions():
-    # TODO sets, setData 동시에 사용해도 무관
-    # TODO transform code need
-    pass
+def ability_refined(ability: dict, api_name:str | None = None) -> dict:
+    """
+    transform ability data
+    """
+    description = ability.get('desc')
+    icon = ability.get('icon')
+    name = ability.get('name')
+    variables = ability.get('variables')
+    variables_2 = {
+        variable.get('name'): variable.get('value')
+        for variable in variables
+    }
+    variables_3 = effects_hash_to_name(description, variables_2, api_name)
+    return {
+        'icon': icon,
+        'name': name,
+        'description': description,
+        'variable_dict': variables_3,
+        'variable_list': variables,
+    }
 
 
-def refine_metadata_set_data_traits():
-    # TODO sets, setData 동시에 사용해도 무관
-    # TODO transform code need
-    pass
+def refine_metadata_champions(champions:dict) -> dict:
+    """
+    transform champion data
+    """
+    api_name = champions.get('apiName')
+    cost = champions.get('cost')
+    icon = champions.get('icon')
+    name = champions.get('name')
+    stats = champions.get('stats')
+    traits = champions.get('traits')
+    ability = champions.get('ability')
+    ability_2 = ability_refined(ability, api_name)
+    return {
+        'api_name': api_name,
+        'cost': cost,
+        'icon': icon,
+        'name': name,
+        'stats': stats,
+        'traits': traits,
+        'ability': ability_2
+    }
 
 
-def refine_metadata_set_data(
-        set_data: dict
-):
-    # TODO
+def traits_effects_refined(
+        description: str,
+        effects: list[dict],
+        api_name: str | None = None
+) -> list[dict]:
+    """
+    transform effects
+    """
+    traits_effects = []
+    for effect in effects:
+        temp_dict = effects_hash_to_name(description=description, effects=effect, api_name=api_name)
+        for k, v in temp_dict.items():
+            if isinstance(v, dict):
+                temp_dict[k] = effects_hash_to_name(description=description, effects=v, api_name=api_name)
+        traits_effects.append(temp_dict)
+    return traits_effects
+
+
+def metadata_traits_transform(traits: dict) -> dict:
+    """
+    transform traits data
+    """
+    api_name = traits.get('apiName')
+    description = traits.get('desc')
+    effects = traits.get('effects')
+    icon = traits.get('icon')
+    name = traits.get('name')
+    effects_refined = traits_effects_refined(description=description, effects=effects, api_name=api_name)
+    return {
+        'api_name' : api_name,
+        'description': description,
+        'effects': effects_refined,
+        'icon': icon,
+        'name': name
+    }
+
+
+def refine_metadata_set_data(set_data: dict) -> dict:
+    """
+    transform metadata setData
+    """
     set_data_name = set_data.get('name')
     set_data_mutator = set_data.get('mutator')
     set_data_number = set_data.get('number')
     set_data_champions = set_data.get('champions')
     set_data_traits = set_data.get('traits')
-    # TODO transform code need
-    pass
+    return {
+        'name': set_data_name,
+        'mutator': set_data_mutator,
+        'number': set_data_number,
+        'champions': list(map(refine_metadata_champions, set_data_champions)),
+        'traits': list(map(metadata_traits_transform, set_data_traits)),
+    }
 
 
-def refine_metadata_sets(
-        sets: dict
-):
+def refine_metadata_sets(sets: dict) -> dict:
+    """
+    transform sets
+    """
     champions = sets.get('champions')
     sets_name = sets.get('name')
     sets_traits = sets.get('traits')
-    # TODO transform code need
-    pass
+    return {
+        'name': sets_name,
+        'champions': list(map(refine_metadata_champions, champions)),
+        'traits': list(map(metadata_traits_transform, sets_traits)),
+    }
